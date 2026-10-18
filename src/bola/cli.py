@@ -10,6 +10,7 @@ from .graph import TaskGraph
 from .logging import Logger
 from .ollama_client import OllamaError
 from .planner import plan
+from .planning_chat import interactive_plan
 from .state import RunState, run_id, scan_history
 
 
@@ -26,18 +27,30 @@ def main(argv=None):
     parser.add_argument("--max-turns", type=int)
     parser.add_argument("--max-sessions", type=int)
     parser.add_argument("--output", type=Path, help="plan output JSON")
+    parser.add_argument("--interactive", "-i", action="store_true", help="discuss and refine a plan")
+    parser.add_argument("--continue", dest="continue_planning", action="store_true",
+                        help="resume the latest interactive planning conversation")
     parser.add_argument("--yes", action="store_true")
     parser.add_argument("--dry-run", action="store_true", help="plan without executing tools")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--all", action="store_true", help="history across registered projects")
     args = parser.parse_args(argv)
+    if args.interactive and args.command != "plan":
+        parser.error("--interactive is only available with plan")
+    if args.continue_planning and not args.interactive:
+        parser.error("--continue requires plan --interactive")
+    if args.interactive and args.quiet:
+        parser.error("--quiet cannot hide interactive planning replies")
     log = Logger(verbose=args.verbose, quiet=args.quiet)
     try:
         root = args.root.resolve()
         if not root.is_dir():
             raise ValueError(f"Project directory does not exist: {root}")
         config = load_config(root, vars(args))
+        if args.interactive:
+            interactive_plan(config, log, args.task, args.output, args.continue_planning)
+            return 0
         registry = Path.home() / ".local" / "share" / "bola" / "projects.json"
         if args.command == "doctor":
             return 0 if doctor(config, log) else 1

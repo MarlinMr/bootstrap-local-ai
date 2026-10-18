@@ -23,6 +23,40 @@ bola run plan.json
 bola run "Add CSV export and verify it" --yes
 ```
 
+## Discuss and refine a plan
+
+```sh
+bola plan --interactive
+# Or start the discussion with a task:
+bola plan "Build an expense tracker" -i --output plan.json
+```
+
+Type requirements, answer questions, and ask for changes over multiple turns.
+The planner streams its replies. Commands inside the discussion:
+
+- `/plan` generates and previews the task graph. Continue chatting to revise it.
+- `/save` generates an updated graph if necessary, saves it, and exits.
+- `/retry` retries a reply interrupted by a connection failure.
+- `/quit` exits without exporting a plan; the conversation is retained.
+- `/help` shows the commands.
+
+Run the saved plan separately with `bola run plan.json` (the default output is
+`bola-plan.json`). Interactive planning does not execute worker tasks.
+
+Resume the latest discussion in the current project:
+
+```sh
+bola plan --interactive --continue
+```
+
+Conversations are saved under `.bola/planning/<id>/conversation.json`. Starting
+without `--continue` creates a fresh discussion, retaining older sessions on disk.
+Older turns are compressed into requirements notes when the estimated input
+approaches the configured context budget; the full transcript remains on disk.
+Planner context counts are displayed after each reply. The planner uses a file
+listing, not file contents, during this discussion. Use `--planner-model`, `--ctx`,
+and `--output-reserve` as usual to change the model and budgets.
+
 For development without installing:
 
 ```sh
