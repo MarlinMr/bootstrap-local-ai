@@ -1,0 +1,10 @@
+ollama_url = "http://localhost:11434"
+planner_model = "qwen3.8:27b"
+worker_model = "qwen3-coder:30b"
+num_ctx = 32768
+output_reserve = 4096
+max_turns = 24
+max_sessions = 3
+# Empty means no commands. Exact commands are preferable to broad prefixes.
+bash_allow = ["git status --short", "python3 -m unittest discover -s tests"]
+allow_network = false
